@@ -1,7 +1,7 @@
 {
-  "name": "diminswap-backend",
+  "name": "faceswapper-backend",
   "version": "1.0.0",
-  "description": "RoflanSwap API",
+  "description": "faceswapper API",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",

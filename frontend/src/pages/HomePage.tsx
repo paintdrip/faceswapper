@@ -1,31 +1,34 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Zap, Shield, Cpu, ArrowRight, Image, Wand2 } from 'lucide-react'
-
-const features = [
-  {
-    icon: Cpu,
-    title: 'Локальная AI обработка',
-    description: 'Вся обработка происходит на вашем компьютере с помощью моделей InsightFace и FaceFusion.',
-  },
-  {
-    icon: Shield,
-    title: '100% приватно',
-    description: 'Ваши фото никуда не отправляются. Никакого облака, никаких сторонних API.',
-  },
-  {
-    icon: Zap,
-    title: 'Несколько лиц',
-    description: 'Автоматически находит и заменяет все лица на фото за один проход.',
-  },
-  {
-    icon: Image,
-    title: 'Высокое качество',
-    description: 'Максимально доступное качество с продвинутым смешиванием лиц.',
-  },
-]
+import { useTranslation } from '@/i18n/useTranslation'
 
 export default function HomePage() {
+  const { t } = useTranslation()
+
+  const features = [
+    {
+      icon: Cpu,
+      title: t.featureLocalAI,
+      description: t.featureLocalAIDesc,
+    },
+    {
+      icon: Shield,
+      title: t.featurePrivate,
+      description: t.featurePrivateDesc,
+    },
+    {
+      icon: Zap,
+      title: t.featureMultiple,
+      description: t.featureMultipleDesc,
+    },
+    {
+      icon: Image,
+      title: t.featureQuality,
+      description: t.featureQualityDesc,
+    },
+  ]
+
   return (
     <div className="overflow-hidden">
       {/* Hero */}
@@ -43,21 +46,20 @@ export default function HomePage() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8">
               <Wand2 className="w-4 h-4 text-primary" />
-              <span className="text-sm text-gray-300">Powered by FaceFusion + InsightFace</span>
+              <span className="text-sm text-gray-300">Powered by InsightFace + ONNX</span>
             </div>
             <h1 className="text-5xl sm:text-7xl font-bold mb-6 leading-tight">
-              Замени лицо на{' '}
-              <span className="gradient-text">лицо Димы Данилина</span>
+              {t.heroTitlePrefix}{' '}
+              <span className="gradient-text">{t.heroTitleHighlight}</span>
             </h1>
             <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-              Загрузи любое фото и замени все лица на лицо Димы Данилина с помощью
-              современных open-source моделей — абсолютно бесплатно и приватно.
+              {t.heroSubtitle}
             </p>
             <Link
               to="/swap"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary hover:bg-primaryHover text-white text-lg font-medium transition-all hover:scale-105"
             >
-              Оформить
+              {t.heroCta}
               <ArrowRight className="w-5 h-5" />
             </Link>
           </motion.div>
@@ -73,9 +75,9 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Почему DiminSwap?</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">{t.featuresTitle}</h2>
             <p className="text-gray-400 max-w-xl mx-auto">
-              Создано для приватности, скорости и качества с использованием лучших open-source технологий face swap.
+              {t.featuresSubtitle}
             </p>
           </motion.div>
 
@@ -108,15 +110,15 @@ export default function HomePage() {
           viewport={{ once: true }}
           className="max-w-3xl mx-auto glass-strong rounded-3xl p-12 text-center"
         >
-          <h2 className="text-3xl font-bold mb-4">Ready to swap some faces?</h2>
+          <h2 className="text-3xl font-bold mb-4">{t.ctaTitle}</h2>
           <p className="text-gray-400 mb-8">
-            Grab a group photo and see the magic happen. All processing is done locally on your machine.
+            {t.ctaSubtitle}
           </p>
           <Link
             to="/swap"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary hover:bg-primaryHover text-white text-lg font-medium transition-all hover:scale-105"
           >
-            Get Started
+            {t.ctaButton}
             <ArrowRight className="w-5 h-5" />
           </Link>
         </motion.div>

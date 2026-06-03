@@ -1,63 +1,63 @@
-# DiminSwap
+# faceswapper
 
-🎭 **Локальный AI Face Swap** — Современное веб-приложение для замены лиц на фотографиях. Вся обработка происходит локально на твоём компьютере. Никаких облачных API, никакая фотография не покидает твой ПК.
+🎭 **Local AI Face Swap** — Modern web application for swapping faces in photos. All processing happens locally on your machine. No cloud APIs, no photos leave your PC.
 
 ![Tech Stack](https://img.shields.io/badge/React-18-blue?logo=react)
 ![Tech Stack](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
 ![Tech Stack](https://img.shields.io/badge/Python-3.10+-blue?logo=python)
 ![Tech Stack](https://img.shields.io/badge/InsightFace-local-green)
 
-## Возможности
+## Features
 
-- 🖼️ **Drag & Drop** загрузка фото с предпросмотром
-- 🔍 **Автоматическое распознавание** лиц через InsightFace
-- 🎭 **Замена лиц** на лицо Димы Данилина из `face.png`
-- 👥 **Поддержка групповых фото** — заменяет все найденные лица
-- 🏠 **100% локально** — не требуется интернет после установки
-- 🎨 **Современный интерфейс** — тёмная тема, glassmorphism, анимации
-- 📱 **Адаптивный дизайн** — работает на компьютере и телефоне
-- ⚡ **Быстрая обработка** — оптимизированный локальный инференс
+- 🖼️ **Drag & Drop** photo upload with preview
+- 🔍 **Automatic face detection** via InsightFace
+- 🎭 **Face swapping** — upload any source photo and any target face
+- 👥 **Group photo support** — replaces all detected faces
+- 🏠 **100% local** — no internet required after setup
+- 🎨 **Modern UI** — dark theme, glassmorphism, animations
+- 📱 **Responsive design** — works on desktop and mobile
+- ⚡ **Fast processing** — optimized local inference
+- 🌐 **Multi-language** — Russian and English support
 
-## Архитектура
+## Architecture
 
 ```
-diminSwap/
+faceswapper/
 ├── frontend/          # React + Vite + Tailwind CSS
 ├── backend/           # Express + TypeScript REST API
 ├── ai-service/        # Python FastAPI + InsightFace
-├── face.png           # Лицо Димы Данилина (автозагрузка)
-└── start.sh           # Запуск всех сервисов одной командой
+└── start.sh           # Launch all services with one command
 ```
 
-## Требования
+## Requirements
 
-- **Node.js** 18+ с npm
-- **Python** 3.10+ с pip
-- **Linux/macOS/Windows** (CPU; GPU опционально)
+- **Node.js** 18+ with npm
+- **Python** 3.10+ with pip
+- **Linux/macOS/Windows** (CPU; GPU optional)
 
-## Быстрый старт
+## Quick Start
 
-### 1. Перейди в папку проекта
+### 1. Navigate to project folder
 
 ```bash
-cd diminSwap
+cd faceswapper
 ```
 
-### 2. Запуск одной командой
+### 2. Launch with one command
 
 ```bash
 ./start.sh
 ```
 
-Скрипт автоматически:
-- Установит все Node.js зависимости
-- Создаст Python виртуальное окружение
-- Установит Python модели
-- Запустит все 3 сервиса
+The script automatically:
+- Installs all Node.js dependencies
+- Creates a Python virtual environment
+- Installs Python models
+- Launches all 3 services
 
-После этого открой **http://localhost:5173**
+Then open **http://localhost:5173**
 
-### 3. Ручной запуск (если нужно)
+### 3. Manual launch (if needed)
 
 #### Frontend
 ```bash
@@ -82,63 +82,61 @@ pip install -r requirements.txt
 python src/main.py
 ```
 
-## Как это работает
+## How It Works
 
-1. **Загрузи** любое фото с лицами через drag & drop
-2. **AI Service** находит все лица с помощью InsightFace (`buffalo_l`)
-3. **Face Swap** заменяет каждое найденное лицо на лицо Димы Данилина из `face.png` через `inswapper_128.onnx`
-4. **Скачай** результат в максимальном PNG качестве
+1. **Upload** a source photo with faces via drag & drop
+2. **Upload** a target face photo — the face you want to use
+3. **AI Service** finds all faces using InsightFace (`buffalo_l`)
+4. **Face Swap** replaces each detected face with the target face via `inswapper_128.onnx`
+5. **Download** the result in maximum PNG quality
 
-## Структура проекта
+## Project Structure
 
 ### Frontend
 - React 18 + TypeScript + Vite
 - Tailwind CSS + Glassmorphism UI
-- Zustand для управления состоянием
-- TanStack Query для серверного состояния
-- Framer Motion анимации
-- React Router навигация
+- Zustand for state management
+- TanStack Query for server state
+- Framer Motion animations
+- React Router navigation
+- i18n (Russian / English)
 
 ### Backend
 - Express + TypeScript
-- REST API для загрузки изображений
-- Multer для работы с файлами
-- Проксирование к AI Service
+- REST API for image upload
+- Multer for file handling
+- Proxying to AI Service
 
 ### AI Service
 - FastAPI + Python
-- InsightFace для детекции и выравнивания лиц
-- ONNX Runtime для инференса face swap
-- Автоматическая загрузка моделей при первом запуске
+- InsightFace for face detection and alignment
+- ONNX Runtime for face swap inference
+- Automatic model download on first launch
 
-## Тестирование
+## Testing
 
 ```bash
-# Frontend тесты
+# Frontend tests
 npm run test:frontend
 
-# Backend тесты
+# Backend tests
 npm run test:backend
 
-# AI Service тесты
+# AI Service tests
 npm run test:ai
 
-# Все тесты
+# All tests
 npm test
 ```
 
-## Референсное лицо
+## Configuration
 
-Файл `face.png` в корне проекта — это лицо Димы Данилина, которое используется для замены всех найденных лиц на загруженных фотографиях.
+| Environment Variable | Default | Description |
+|---------------------|---------|-------------|
+| `PORT` | `3001` | Backend API port |
+| `AI_SERVICE_URL` | `http://localhost:8000` | AI service address |
 
-## Конфигурация
-
-| Переменная окружения | Значение по умолчанию | Описание |
-|---------------------|----------------------|----------|
-| `PORT` | `3001` | Порт backend API |
-| `AI_SERVICE_URL` | `http://localhost:8000` | Адрес AI сервиса |
-
-## Технологии
+## Tech Stack
 
 **Frontend:** React, TypeScript, Vite, Tailwind CSS, Zustand, TanStack Query, React Router, Framer Motion
 
@@ -146,11 +144,11 @@ npm test
 
 **AI:** Python, FastAPI, InsightFace, ONNX Runtime, OpenCV
 
-## Лицензия
+## License
 
 MIT
 
-## Благодарности
+## Credits
 
-- [InsightFace](https://github.com/deepinsight/insightface) — Анализ и замена лиц
-- [FaceFusion](https://github.com/facefusion/facefusion) — Вдохновение для локального face swap
+- [InsightFace](https://github.com/deepinsight/insightface) — Face analysis and swapping
+- [FaceFusion](https://github.com/facefusion/facefusion) — Inspiration for local face swap

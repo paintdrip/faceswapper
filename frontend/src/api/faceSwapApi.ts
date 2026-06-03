@@ -7,9 +7,14 @@ export interface SwapResult {
   facesDetected: number
 }
 
-export async function uploadAndSwap(file: File, onProgress?: (progress: number) => void): Promise<SwapResult> {
+export async function uploadAndSwap(
+  sourceFile: File,
+  targetFaceFile: File,
+  onProgress?: (progress: number) => void,
+): Promise<SwapResult> {
   const formData = new FormData()
-  formData.append('image', file)
+  formData.append('source', sourceFile)
+  formData.append('target_face', targetFaceFile)
 
   const { data } = await axios.post(`${API_BASE}/swap`, formData, {
     headers: {

@@ -1,14 +1,8 @@
 #!/bin/bash
 set -e
 
-echo "🚀 DiminSwap Launcher"
-echo "======================"
-
-# Check if face.png exists
-if [ ! -f "face.png" ]; then
-    echo "❌ face.png not found in project root!"
-    exit 1
-fi
+echo "🚀 faceswapper Launcher"
+echo "========================"
 
 # Install frontend dependencies if needed
 if [ ! -d "frontend/node_modules" ]; then
@@ -52,12 +46,12 @@ FRONT_PID=$!
 cd ..
 
 echo ""
-echo "✅ Все сервисы запущены!"
+echo "✅ All services started!"
 echo "   Frontend: http://localhost:5173"
 echo "   Backend:  http://localhost:3001"
 echo "   AI:       http://localhost:8000"
 echo ""
-echo "Нажми Ctrl+C для остановки всех сервисов"
+echo "Press Ctrl+C to stop all services"
 echo ""
 
 trap "echo 'Stopping services...'; kill $AI_PID $BACK_PID $FRONT_PID 2>/dev/null; exit 0" INT

@@ -8,6 +8,7 @@ describe('useAppStore', () => {
   it('should have initial state', () => {
     const state = useAppStore.getState()
     expect(state.originalImage).toBeNull()
+    expect(state.targetFaceImage).toBeNull()
     expect(state.resultImage).toBeNull()
     expect(state.status).toBe('idle')
     expect(state.progress).toBe(0)
@@ -18,6 +19,11 @@ describe('useAppStore', () => {
   it('should set original image', () => {
     useAppStore.getState().setOriginalImage('data:image/png;base64,test')
     expect(useAppStore.getState().originalImage).toBe('data:image/png;base64,test')
+  })
+
+  it('should set target face image', () => {
+    useAppStore.getState().setTargetFaceImage('data:image/png;base64,face')
+    expect(useAppStore.getState().targetFaceImage).toBe('data:image/png;base64,face')
   })
 
   it('should set result image', () => {
@@ -44,10 +50,12 @@ describe('useAppStore', () => {
 
   it('should reset to initial state', () => {
     useAppStore.getState().setOriginalImage('test')
+    useAppStore.getState().setTargetFaceImage('face')
     useAppStore.getState().setStatus('completed')
     useAppStore.getState().reset()
     const state = useAppStore.getState()
     expect(state.originalImage).toBeNull()
+    expect(state.targetFaceImage).toBeNull()
     expect(state.status).toBe('idle')
   })
 })

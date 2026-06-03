@@ -8,9 +8,14 @@ interface ProcessResult {
   facesDetected: number
 }
 
-export async function processImage(inputPath: string, outputPath: string): Promise<ProcessResult> {
+export async function processImage(
+  sourcePath: string,
+  targetFacePath: string,
+  outputPath: string,
+): Promise<ProcessResult> {
   const form = new FormData()
-  form.append('image', fs.createReadStream(inputPath))
+  form.append('source', fs.createReadStream(sourcePath))
+  form.append('target_face', fs.createReadStream(targetFacePath))
 
   const response = await axios.post(`${AI_SERVICE_URL}/swap`, form, {
     headers: form.getHeaders(),

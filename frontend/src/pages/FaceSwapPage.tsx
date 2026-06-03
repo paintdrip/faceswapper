@@ -5,18 +5,27 @@ import ProcessingStatus from '@/components/ProcessingStatus'
 import ResultViewer from '@/components/ResultViewer'
 import { useAppStore } from '@/store/useAppStore'
 import { useFaceSwap } from '@/hooks/useFaceSwap'
+import { useTranslation } from '@/i18n/useTranslation'
 
 export default function FaceSwapPage() {
-  const { originalImage, status } = useAppStore()
+  const { originalImage, targetFaceImage, status } = useAppStore()
   const swapMutation = useFaceSwap()
+  const { t } = useTranslation()
 
   const handleProcess = async () => {
-    if (!originalImage) return
+    if (!originalImage || !targetFaceImage) return
 
-    const response = await fetch(originalImage)
-    const blob = await response.blob()
-    const file = new File([blob], 'upload.png', { type: blob.type })
-    swapMutation.mutate(file)
+    const [sourceResponse, targetResponse] = await Promise.all([
+      fetch(originalImage),
+      fetch(targetFaceImage),
+    ])
+    const [sourceBlob, targetBlob] = await Promise.all([
+      sourceResponse.blob(),
+      targetResponse.blob(),
+    ])
+    const sourceFile = new File([sourceBlob], 'source.png', { type: sourceBlob.type })
+    const targetFile = new File([targetBlob], 'target_face.png', { type: targetBlob.type })
+    swapMutation.mutate({ source: sourceFile, targetFace: targetFile })
   }
 
   const isProcessing = status === 'uploading' || status === 'processing'
@@ -28,16 +37,33 @@ export default function FaceSwapPage() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-12"
       >
-        <h1 className="text-4xl font-bold mb-4">Оформление</h1>
+        <h1 className="text-4xl font-bold mb-4">{t.swapPageTitle}</h1>
         <p className="text-gray-400">
-          Загрузи фото, и мы заменим все найденные лица на лицо Димы Данилина.
+          {t.swapPageSubtitle}
         </p>
       </motion.div>
 
       <div className="space-y-6">
-        <ImageUploader />
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-sm font-medium text-gray-300 mb-2">{t.sourceImageLabel}</h3>
+            <ImageUploader
+              imageKey="original"
+              placeholder={t.sourceImagePlaceholder}
+              hint={t.sourceImageHint}
+            />
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-gray-300 mb-2">{t.targetFaceLabel}</h3>
+            <ImageUploader
+              imageKey="targetFace"
+              placeholder={t.targetFacePlaceholder}
+              hint={t.targetFaceHint}
+            />
+          </div>
+        </div>
 
-        {originalImage && status !== 'completed' && (
+        {originalImage && targetFaceImage && status !== 'completed' && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -51,12 +77,12 @@ export default function FaceSwapPage() {
               {isProcessing ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Processing...
+                  {t.processingButton}
                 </>
               ) : (
                 <>
                   <Wand2 className="w-5 h-5" />
-                  Оформить
+                  {t.swapButton}
                 </>
               )}
             </button>

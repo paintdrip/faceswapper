@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
-
+import { useTranslation } from '@/i18n/useTranslation'
 
 export default function ProcessingStatus() {
   const { status, progress, error, facesDetected } = useAppStore()
+  const { t } = useTranslation()
 
   if (status === 'idle') return null
 
@@ -17,7 +18,7 @@ export default function ProcessingStatus() {
       {status === 'uploading' && (
         <div className="flex items-center gap-3">
           <Loader2 className="w-5 h-5 animate-spin text-primary" />
-          <span>Загрузка изображения...</span>
+          <span>{t.processingUpload}</span>
           <span className="ml-auto text-sm text-gray-400">{progress}%</span>
         </div>
       )}
@@ -25,7 +26,7 @@ export default function ProcessingStatus() {
       {status === 'processing' && (
         <div className="flex items-center gap-3">
           <Loader2 className="w-5 h-5 animate-spin text-primary" />
-          <span>AI обрабатывает лица...</span>
+          <span>{t.processingAI}</span>
         </div>
       )}
 
@@ -43,7 +44,7 @@ export default function ProcessingStatus() {
       {status === 'completed' && (
         <div className="flex items-center gap-3 text-green-400">
           <CheckCircle2 className="w-5 h-5" />
-          <span>Готово! Найдено и заменено лиц: {facesDetected}.</span>
+          <span>{t.completed} {facesDetected}.</span>
         </div>
       )}
 

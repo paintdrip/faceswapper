@@ -40,19 +40,25 @@ const upload = multer({
   },
 })
 
-router.post('/', upload.single('image'), async (req, res) => {
+router.post('/', upload.fields([
+  { name: 'source', maxCount: 1 },
+  { name: 'target_face', maxCount: 1 },
+]), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No image provided' })
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] }
+    if (!files?.source?.[0] || !files?.target_face?.[0]) {
+      return res.status(400).json({ error: 'Both source and target_face images are required' })
     }
 
-    const inputPath = req.file.path
+    const sourcePath = files.source[0].path
+    const targetFacePath = files.target_face[0].path
     const outputFilename = `result-${uuidv4()}.png`
     const outputPath = path.join(resultsDir, outputFilename)
 
-    const result = await processImage(inputPath, outputPath)
+    const result = await processImage(sourcePath, targetFacePath, outputPath)
 
-    fs.unlinkSync(inputPath)
+    fs.unlinkSync(sourcePath)
+    fs.unlinkSync(targetFacePath)
 
     return res.json({
       resultUrl: `/api/results/${outputFilename}`,

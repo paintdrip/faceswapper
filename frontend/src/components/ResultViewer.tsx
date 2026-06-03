@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion'
 import { Download, RotateCcw } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
+import { useTranslation } from '@/i18n/useTranslation'
 
 export default function ResultViewer() {
-  const { resultImage, setOriginalImage, setResultImage, setStatus } = useAppStore()
+  const { resultImage, setOriginalImage, setTargetFaceImage, setResultImage, setStatus } = useAppStore()
+  const { t } = useTranslation()
 
   if (!resultImage) return null
 
@@ -14,7 +16,7 @@ export default function ResultViewer() {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `roflanswap-result-${Date.now()}.png`
+      link.download = `faceswapper-result-${Date.now()}.png`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -26,6 +28,7 @@ export default function ResultViewer() {
 
   const handleReset = () => {
     setOriginalImage(null)
+    setTargetFaceImage(null)
     setResultImage(null)
     setStatus('idle')
   }
@@ -49,14 +52,14 @@ export default function ResultViewer() {
           className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primaryHover text-white font-medium transition-all hover:scale-105"
         >
           <Download className="w-5 h-5" />
-          Скачать результат
+          {t.downloadResult}
         </button>
         <button
           onClick={handleReset}
           className="flex items-center gap-2 px-6 py-3 rounded-xl glass hover:bg-white/10 text-white font-medium transition-all"
         >
           <RotateCcw className="w-5 h-5" />
-          Новое фото
+          {t.newPhoto}
         </button>
       </div>
     </motion.div>

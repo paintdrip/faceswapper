@@ -3,15 +3,13 @@ import cv2
 import numpy as np
 import insightface
 from insightface.app import FaceAnalysis
-from insightface.data import get_image as ins_get_image
+
 
 class FaceSwapService:
-    def __init__(self, face_path: str, models_dir: str):
-        self.face_path = face_path
+    def __init__(self, models_dir: str):
         self.models_dir = models_dir
         self.app = None
         self.swapper = None
-        self.reference_face = None
         self._init_models()
 
     def _init_models(self):
@@ -33,8 +31,6 @@ class FaceSwapService:
         self.swapper = insightface.model_zoo.get_model(swapper_path)
         print("Face swapper model loaded")
 
-        self._prepare_reference_face()
-
     def _download_model(self, dest_path: str):
         import urllib.request
         url = "https://github.com/deepinsight/insightface/releases/download/v0.7/inswapper_128.onnx"
@@ -42,36 +38,30 @@ class FaceSwapService:
         urllib.request.urlretrieve(url, dest_path)
         print(f"Model downloaded to {dest_path}")
 
-    def _prepare_reference_face(self):
-        if not os.path.exists(self.face_path):
-            raise FileNotFoundError(f"Reference face not found at {self.face_path}")
-
-        print(f"Loading reference face from {self.face_path}")
-        ref_img = cv2.imread(self.face_path)
-        if ref_img is None:
-            raise ValueError(f"Cannot read reference face image: {self.face_path}")
-
-        ref_faces = self.app.get(ref_img)
+    def _prepare_reference_face(self, face_image: np.ndarray):
+        ref_faces = self.app.get(face_image)
         if len(ref_faces) == 0:
-            raise ValueError("No face detected in reference image (face.png)")
+            raise ValueError("No face detected in target face image")
 
-        self.reference_face = ref_faces[0]
         print(f"Reference face prepared. Detected {len(ref_faces)} face(s) in reference.")
+        return ref_faces[0]
 
-    def swap_faces(self, image: np.ndarray) -> tuple[np.ndarray, int]:
-        if self.swapper is None or self.reference_face is None:
+    def swap_faces(self, source_image: np.ndarray, target_face_image: np.ndarray) -> tuple[np.ndarray, int]:
+        if self.swapper is None:
             raise RuntimeError("Models not initialized")
 
-        faces = self.app.get(image)
+        reference_face = self._prepare_reference_face(target_face_image)
+
+        faces = self.app.get(source_image)
         faces_detected = len(faces)
 
         if faces_detected == 0:
-            print("No faces detected in target image")
-            return image, 0
+            print("No faces detected in source image")
+            return source_image, 0
 
-        result = image.copy()
+        result = source_image.copy()
         for face in faces:
-            result = self.swapper.get(result, face, self.reference_face, paste_back=True)
+            result = self.swapper.get(result, face, reference_face, paste_back=True)
 
         print(f"Processed {faces_detected} face(s)")
         return result, faces_detected

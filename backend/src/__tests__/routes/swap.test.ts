@@ -14,20 +14,34 @@ describe('POST /api/swap', () => {
     mockProcessImage.mockResolvedValue({ facesDetected: 2 })
   })
 
-  it('returns 400 when no image is provided', async () => {
+  it('returns 400 when images are not provided', async () => {
     const res = await request(app).post('/api/swap').send()
     expect(res.status).toBe(400)
-    expect(res.body.error).toBe('No image provided')
+    expect(res.body.error).toBe('Both source and target_face images are required')
   })
 
-  it('processes image and returns result', async () => {
+  it('returns 400 when only source is provided', async () => {
     const testImagePath = path.join(__dirname, '../../../uploads/test-image.png')
     fs.mkdirSync(path.dirname(testImagePath), { recursive: true })
     fs.writeFileSync(testImagePath, Buffer.from('fake-image-data'))
 
     const res = await request(app)
       .post('/api/swap')
-      .attach('image', testImagePath)
+      .attach('source', testImagePath)
+
+    expect(res.status).toBe(400)
+    fs.unlinkSync(testImagePath)
+  })
+
+  it('processes images and returns result', async () => {
+    const testImagePath = path.join(__dirname, '../../../uploads/test-image.png')
+    fs.mkdirSync(path.dirname(testImagePath), { recursive: true })
+    fs.writeFileSync(testImagePath, Buffer.from('fake-image-data'))
+
+    const res = await request(app)
+      .post('/api/swap')
+      .attach('source', testImagePath)
+      .attach('target_face', testImagePath)
 
     expect(res.status).toBe(200)
     expect(res.body.facesDetected).toBe(2)

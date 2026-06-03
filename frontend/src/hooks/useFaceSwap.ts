@@ -6,11 +6,11 @@ export function useFaceSwap() {
   const { setStatus, setProgress, setResultImage, setError, setFacesDetected } = useAppStore()
 
   return useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async ({ source, targetFace }: { source: File; targetFace: File }) => {
       setStatus('uploading')
       setProgress(0)
 
-      const result = await uploadAndSwap(file, (progress) => {
+      const result = await uploadAndSwap(source, targetFace, (progress) => {
         setProgress(progress)
         if (progress === 100) {
           setStatus('processing')

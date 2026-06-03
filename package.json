@@ -1,7 +1,7 @@
 {
-  "name": "diminswap",
+  "name": "faceswapper",
   "version": "1.0.0",
-  "description": "Локальный AI Face Swap. Лицо Димы Данилина на любой фотографии.",
+  "description": "Local AI Face Swap. Upload any source photo and any target face.",
   "private": true,
   "scripts": {
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
