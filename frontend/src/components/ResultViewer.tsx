@@ -4,7 +4,7 @@ import { useAppStore } from '@/store/useAppStore'
 import { useTranslation } from '@/i18n/useTranslation'
 
 export default function ResultViewer() {
-  const { resultImage, setOriginalImage, setTargetFaceImage, setResultImage, setStatus } = useAppStore()
+  const { resultImage, setOriginalImage, setDetectedFaces, setResultImage, setStatus } = useAppStore()
   const { t } = useTranslation()
 
   if (!resultImage) return null
@@ -28,7 +28,7 @@ export default function ResultViewer() {
 
   const handleReset = () => {
     setOriginalImage(null)
-    setTargetFaceImage(null)
+    setDetectedFaces([])
     setResultImage(null)
     setStatus('idle')
   }

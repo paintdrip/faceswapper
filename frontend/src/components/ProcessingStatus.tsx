@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Loader2, CheckCircle2, AlertCircle, ScanFace } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { useTranslation } from '@/i18n/useTranslation'
 
@@ -15,6 +15,13 @@ export default function ProcessingStatus() {
       animate={{ opacity: 1, y: 0 }}
       className="glass rounded-2xl p-6 space-y-4"
     >
+      {status === 'detecting' && (
+        <div className="flex items-center gap-3">
+          <ScanFace className="w-5 h-5 animate-pulse text-primary" />
+          <span>{t.detectingButton}</span>
+        </div>
+      )}
+
       {status === 'uploading' && (
         <div className="flex items-center gap-3">
           <Loader2 className="w-5 h-5 animate-spin text-primary" />

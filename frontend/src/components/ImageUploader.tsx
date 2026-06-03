@@ -6,15 +6,15 @@ import { useAppStore } from '@/store/useAppStore'
 import { cn } from '@/utils/cn'
 
 interface ImageUploaderProps {
-  imageKey: 'original' | 'targetFace'
+  imageKey: 'original'
   placeholder: string
   hint: string
 }
 
-export default function ImageUploader({ imageKey, placeholder, hint }: ImageUploaderProps) {
+export default function ImageUploader({ placeholder, hint }: ImageUploaderProps) {
   const store = useAppStore()
-  const image = imageKey === 'original' ? store.originalImage : store.targetFaceImage
-  const setImage = imageKey === 'original' ? store.setOriginalImage : store.setTargetFaceImage
+  const image = store.originalImage
+  const setImage = store.setOriginalImage
   const [isDragActive, setIsDragActive] = useState(false)
 
   const onDrop = useCallback(
@@ -24,6 +24,7 @@ export default function ImageUploader({ imageKey, placeholder, hint }: ImageUplo
         const reader = new FileReader()
         reader.onload = () => {
           setImage(reader.result as string)
+          store.setDetectedFaces([])
           if (store.resultImage) {
             store.setResultImage(null)
           }
@@ -51,6 +52,7 @@ export default function ImageUploader({ imageKey, placeholder, hint }: ImageUplo
 
   const clearImage = () => {
     setImage(null)
+    store.setDetectedFaces([])
     if (store.resultImage) {
       store.setResultImage(null)
     }
@@ -63,7 +65,7 @@ export default function ImageUploader({ imageKey, placeholder, hint }: ImageUplo
       <div className="relative glass-strong rounded-2xl overflow-hidden">
         <img
           src={image}
-          alt={imageKey === 'original' ? 'Source' : 'Target face'}
+          alt="Source"
           className="w-full h-64 object-contain bg-black/20"
         />
         <button

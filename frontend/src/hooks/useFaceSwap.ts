@@ -1,16 +1,36 @@
 import { useMutation } from '@tanstack/react-query'
 import { useAppStore } from '@/store/useAppStore'
-import { uploadAndSwap } from '@/api/faceSwapApi'
+import { detectFaces, uploadAndSwap } from '@/api/faceSwapApi'
+
+export function useDetectFaces() {
+  const { setStatus, setDetectedFaces, setError } = useAppStore()
+
+  return useMutation({
+    mutationFn: async (file: File) => {
+      setStatus('detecting')
+      const result = await detectFaces(file)
+      return result
+    },
+    onSuccess: (data) => {
+      setDetectedFaces(data.faces)
+      setStatus('idle')
+    },
+    onError: (error: Error) => {
+      setError(error.message || 'Face detection failed')
+      setStatus('error')
+    },
+  })
+}
 
 export function useFaceSwap() {
   const { setStatus, setProgress, setResultImage, setError, setFacesDetected } = useAppStore()
 
   return useMutation({
-    mutationFn: async ({ source, targetFace }: { source: File; targetFace: File }) => {
+    mutationFn: async ({ source, targetFaces }: { source: File; targetFaces: (File | null)[] }) => {
       setStatus('uploading')
       setProgress(0)
 
-      const result = await uploadAndSwap(source, targetFace, (progress) => {
+      const result = await uploadAndSwap(source, targetFaces, (progress) => {
         setProgress(progress)
         if (progress === 100) {
           setStatus('processing')

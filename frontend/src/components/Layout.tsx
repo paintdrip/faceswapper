@@ -24,7 +24,7 @@ export default function Layout({ children }: LayoutProps) {
               >
                 <Sparkles className="w-6 h-6 text-primary" />
               </motion.div>
-              <span className="text-xl font-bold gradient-text">{t.brand}</span>
+              <span className="text-xl font-bold gradient-text font-display">{t.brand}</span>
             </Link>
             <div className="flex items-center gap-4">
               <Link

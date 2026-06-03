@@ -3,9 +3,10 @@ import sys
 import io
 import cv2
 import numpy as np
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi.responses import StreamingResponse, JSONResponse
 from contextlib import asynccontextmanager
+from typing import List
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -26,10 +27,38 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="faceswapper AI Service", lifespan=lifespan)
 
+
+@app.post("/detect")
+async def detect_faces(image: UploadFile = File(...)):
+    if not service:
+        raise HTTPException(status_code=500, detail="Service not initialized")
+    if not image.content_type or not image.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Invalid file type")
+
+    contents = await image.read()
+    if len(contents) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+
+    try:
+        nparr = np.frombuffer(contents, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if img is None:
+            raise HTTPException(status_code=400, detail="Invalid image")
+
+        faces = service.detect_faces(img)
+        return JSONResponse({"faces": faces, "count": len(faces)})
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Detection error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/swap")
 async def swap_faces(
     source: UploadFile = File(...),
-    target_face: UploadFile = File(...),
+    target_face: UploadFile = File(None),
+    target_faces: List[UploadFile] = File(None),
 ):
     if not service:
         raise HTTPException(status_code=500, detail="Service not initialized")
@@ -37,29 +66,40 @@ async def swap_faces(
     if not source.content_type or not source.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Invalid source file type")
 
-    if not target_face.content_type or not target_face.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Invalid target face file type")
-
     try:
         source_contents = await source.read()
         if len(source_contents) > 10 * 1024 * 1024:
             raise HTTPException(status_code=400, detail="Source file too large (max 10MB)")
-
-        target_contents = await target_face.read()
-        if len(target_contents) > 10 * 1024 * 1024:
-            raise HTTPException(status_code=400, detail="Target face file too large (max 10MB)")
 
         source_nparr = np.frombuffer(source_contents, np.uint8)
         source_img = cv2.imdecode(source_nparr, cv2.IMREAD_COLOR)
         if source_img is None:
             raise HTTPException(status_code=400, detail="Invalid source image")
 
-        target_nparr = np.frombuffer(target_contents, np.uint8)
-        target_img = cv2.imdecode(target_nparr, cv2.IMREAD_COLOR)
-        if target_img is None:
-            raise HTTPException(status_code=400, detail="Invalid target face image")
-
-        result, faces_detected = service.swap_faces(source_img, target_img)
+        # Multiple target faces mode
+        if target_faces and len(target_faces) > 0:
+            target_imgs = []
+            for tf in target_faces:
+                if tf is None:
+                    target_imgs.append(None)
+                    continue
+                tf_contents = await tf.read()
+                tf_nparr = np.frombuffer(tf_contents, np.uint8)
+                tf_img = cv2.imdecode(tf_nparr, cv2.IMREAD_COLOR)
+                target_imgs.append(tf_img)
+            result, faces_detected = service.swap_faces_multiple(source_img, target_imgs)
+        # Single target face mode (backward compatible)
+        elif target_face and target_face.content_type and target_face.content_type.startswith("image/"):
+            target_contents = await target_face.read()
+            if len(target_contents) > 10 * 1024 * 1024:
+                raise HTTPException(status_code=400, detail="Target face file too large (max 10MB)")
+            target_nparr = np.frombuffer(target_contents, np.uint8)
+            target_img = cv2.imdecode(target_nparr, cv2.IMREAD_COLOR)
+            if target_img is None:
+                raise HTTPException(status_code=400, detail="Invalid target face image")
+            result, faces_detected = service.swap_faces(source_img, target_img)
+        else:
+            raise HTTPException(status_code=400, detail="Provide either target_face or target_faces")
 
         _, buffer = cv2.imencode('.png', result)
         io_buffer = io.BytesIO(buffer.tobytes())
@@ -74,6 +114,7 @@ async def swap_faces(
     except Exception as e:
         print(f"Processing error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/health")
 async def health():

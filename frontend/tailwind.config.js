@@ -7,13 +7,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0a0a0f',
-        surface: 'rgba(255,255,255,0.05)',
-        surfaceHover: 'rgba(255,255,255,0.08)',
-        border: 'rgba(255,255,255,0.1)',
-        primary: '#6366f1',
-        primaryHover: '#4f46e5',
-        accent: '#a78bfa',
+        background: '#050a08',
+        surface: 'rgba(255,255,255,0.04)',
+        surfaceHover: 'rgba(255,255,255,0.07)',
+        border: 'rgba(255,255,255,0.08)',
+        primary: '#2dd4a0',
+        primaryHover: '#20b98a',
+        accent: '#86efac',
+      },
+      fontFamily: {
+        display: ['"Space Grotesk"', 'sans-serif'],
+        body: ['"Inter"', 'sans-serif'],
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

@@ -7,14 +7,37 @@ export interface SwapResult {
   facesDetected: number
 }
 
+export interface DetectedFace {
+  id: number
+  bbox: number[]
+  cropped: string
+}
+
+export async function detectFaces(image: File): Promise<{ faces: DetectedFace[]; count: number }> {
+  const formData = new FormData()
+  formData.append('image', image)
+
+  const { data } = await axios.post(`${API_BASE}/swap/detect`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+
+  return data
+}
+
 export async function uploadAndSwap(
   sourceFile: File,
-  targetFaceFile: File,
+  targetFaceFiles: (File | null)[],
   onProgress?: (progress: number) => void,
 ): Promise<SwapResult> {
   const formData = new FormData()
   formData.append('source', sourceFile)
-  formData.append('target_face', targetFaceFile)
+
+  const validTargets = targetFaceFiles.filter((f): f is File => f !== null)
+  validTargets.forEach((file) => {
+    formData.append('target_faces', file)
+  })
 
   const { data } = await axios.post(`${API_BASE}/swap`, formData, {
     headers: {

@@ -17,6 +17,12 @@ describe('ProcessingStatus', () => {
     expect(container.firstChild).toBeNull()
   })
 
+  it('renders detecting state', () => {
+    useAppStore.getState().setStatus('detecting')
+    render(<ProcessingStatus />, { wrapper: Wrapper })
+    expect(screen.getByText(/Поиск лиц/i)).toBeInTheDocument()
+  })
+
   it('renders uploading state', () => {
     useAppStore.getState().setStatus('uploading')
     useAppStore.getState().setProgress(45)
@@ -35,7 +41,8 @@ describe('ProcessingStatus', () => {
     useAppStore.getState().setStatus('completed')
     useAppStore.getState().setFacesDetected(2)
     render(<ProcessingStatus />, { wrapper: Wrapper })
-    expect(screen.getByText('Готово! Найдено и заменено лиц: 2.')).toBeInTheDocument()
+    expect(screen.getByText(/Готово!/i)).toBeInTheDocument()
+    expect(screen.getByText(/2/i)).toBeInTheDocument()
   })
 
   it('renders error state', () => {

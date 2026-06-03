@@ -3,7 +3,7 @@ import multer from 'multer'
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import fs from 'fs'
-import { processImage } from '../services/aiService'
+import { detectFaces, processImage, processImageMultiple } from '../services/aiService'
 
 const router = Router()
 
@@ -40,25 +40,53 @@ const upload = multer({
   },
 })
 
+router.post('/detect', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image provided' })
+    }
+    const result = await detectFaces(req.file.path)
+    fs.unlinkSync(req.file.path)
+    return res.json(result)
+  } catch (error) {
+    console.error('Detect error:', error)
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : 'Face detection failed',
+    })
+  }
+})
+
 router.post('/', upload.fields([
   { name: 'source', maxCount: 1 },
   { name: 'target_face', maxCount: 1 },
+  { name: 'target_faces', maxCount: 20 },
 ]), async (req, res) => {
   try {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] }
-    if (!files?.source?.[0] || !files?.target_face?.[0]) {
-      return res.status(400).json({ error: 'Both source and target_face images are required' })
+    if (!files?.source?.[0]) {
+      return res.status(400).json({ error: 'Source image is required' })
     }
 
     const sourcePath = files.source[0].path
-    const targetFacePath = files.target_face[0].path
     const outputFilename = `result-${uuidv4()}.png`
     const outputPath = path.join(resultsDir, outputFilename)
 
-    const result = await processImage(sourcePath, targetFacePath, outputPath)
+    let result
+    // Multiple target faces mode
+    if (files.target_faces && files.target_faces.length > 0) {
+      const targetPaths = files.target_faces.map(f => f.path)
+      result = await processImageMultiple(sourcePath, targetPaths, outputPath)
+      targetPaths.forEach(p => fs.unlinkSync(p))
+    } else if (files.target_face?.[0]) {
+      const targetPath = files.target_face[0].path
+      result = await processImage(sourcePath, targetPath, outputPath)
+      fs.unlinkSync(targetPath)
+    } else {
+      fs.unlinkSync(sourcePath)
+      return res.status(400).json({ error: 'Target face image(s) are required' })
+    }
 
     fs.unlinkSync(sourcePath)
-    fs.unlinkSync(targetFacePath)
 
     return res.json({
       resultUrl: `/api/results/${outputFilename}`,

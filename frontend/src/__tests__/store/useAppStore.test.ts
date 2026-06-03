@@ -8,7 +8,8 @@ describe('useAppStore', () => {
   it('should have initial state', () => {
     const state = useAppStore.getState()
     expect(state.originalImage).toBeNull()
-    expect(state.targetFaceImage).toBeNull()
+    expect(state.detectedFaces).toEqual([])
+    expect(state.targetFaces).toEqual([])
     expect(state.resultImage).toBeNull()
     expect(state.status).toBe('idle')
     expect(state.progress).toBe(0)
@@ -21,9 +22,17 @@ describe('useAppStore', () => {
     expect(useAppStore.getState().originalImage).toBe('data:image/png;base64,test')
   })
 
-  it('should set target face image', () => {
-    useAppStore.getState().setTargetFaceImage('data:image/png;base64,face')
-    expect(useAppStore.getState().targetFaceImage).toBe('data:image/png;base64,face')
+  it('should set detected faces', () => {
+    const faces = [{ id: 0, bbox: [0, 0, 10, 10], cropped: 'data:image/png;base64,abc' }]
+    useAppStore.getState().setDetectedFaces(faces)
+    expect(useAppStore.getState().detectedFaces).toEqual(faces)
+    expect(useAppStore.getState().targetFaces).toEqual([null])
+  })
+
+  it('should set target face', () => {
+    useAppStore.getState().setDetectedFaces([{ id: 0, bbox: [0, 0, 10, 10], cropped: 'data:image/png;base64,abc' }])
+    useAppStore.getState().setTargetFace(0, 'data:image/png;base64,face')
+    expect(useAppStore.getState().targetFaces[0]).toBe('data:image/png;base64,face')
   })
 
   it('should set result image', () => {
@@ -50,12 +59,12 @@ describe('useAppStore', () => {
 
   it('should reset to initial state', () => {
     useAppStore.getState().setOriginalImage('test')
-    useAppStore.getState().setTargetFaceImage('face')
+    useAppStore.getState().setDetectedFaces([{ id: 0, bbox: [0, 0, 10, 10], cropped: 'data:image/png;base64,abc' }])
     useAppStore.getState().setStatus('completed')
     useAppStore.getState().reset()
     const state = useAppStore.getState()
     expect(state.originalImage).toBeNull()
-    expect(state.targetFaceImage).toBeNull()
+    expect(state.detectedFaces).toEqual([])
     expect(state.status).toBe('idle')
   })
 })
