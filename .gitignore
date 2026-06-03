@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Uploads
+uploads/
+
+# Models (large files)
+ai-service/models/
+ai-service/models/*.onnx
+ai-service/models/buffalo_l/
+ai-service/models/inswapper_128.onnx
+
+# Coverage
+coverage/
+frontend/coverage/

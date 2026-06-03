@@ -1,0 +1,23 @@
+{
+  "name": "diminswap",
+  "version": "1.0.0",
+  "description": "Локальный AI Face Swap. Лицо Димы Данилина на любой фотографии.",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "install:ai": "cd ai-service && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:ai": "cd ai-service && source .venv/bin/activate && python src/main.py",
+    "dev": "echo 'Run in separate terminals: npm run dev:ai, npm run dev:backend, npm run dev:frontend'",
+    "test:frontend": "cd frontend && npm test",
+    "test:backend": "cd backend && npm test",
+    "test:ai": "cd ai-service && source .venv/bin/activate && pytest",
+    "test": "npm run test:frontend && npm run test:backend && npm run test:ai",
+    "build": "cd frontend && npm run build && cd ../backend && npm run build"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}
