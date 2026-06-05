@@ -3,7 +3,7 @@ import multer from 'multer'
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import fs from 'fs'
-import { detectFaces, processImage, processImageMultiple } from '../services/aiService'
+import { detectFaces, processImage, processImageMultiple, processVideo } from '../services/aiService'
 
 const router = Router()
 
@@ -27,7 +27,7 @@ const storage = multer.diskStorage({
   },
 })
 
-const upload = multer({
+const imageUpload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
@@ -40,7 +40,26 @@ const upload = multer({
   },
 })
 
-router.post('/detect', upload.single('image'), async (req, res) => {
+const videoUpload = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowedMimes = [
+      'image/jpeg', 'image/png', 'image/webp',
+      'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm',
+      'application/octet-stream',
+    ]
+    const allowedExt = ['.mp4', '.mov', '.avi', '.webm', '.png', '.jpg', '.jpeg', '.webp']
+    const ext = path.extname(file.originalname).toLowerCase()
+    if (allowedMimes.includes(file.mimetype) || allowedExt.includes(ext)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Invalid file type. Only images (JPEG, PNG, WebP) and videos (MP4, MOV, AVI, WEBM) are allowed.'))
+    }
+  },
+})
+
+router.post('/detect', imageUpload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No image provided' })
@@ -56,7 +75,7 @@ router.post('/detect', upload.single('image'), async (req, res) => {
   }
 })
 
-router.post('/', upload.fields([
+router.post('/', imageUpload.fields([
   { name: 'source', maxCount: 1 },
   { name: 'target_face', maxCount: 1 },
   { name: 'target_faces', maxCount: 20 },
@@ -96,6 +115,42 @@ router.post('/', upload.fields([
     console.error('Swap error:', error)
     return res.status(500).json({
       error: error instanceof Error ? error.message : 'Face swap failed',
+    })
+  }
+})
+
+router.post('/video', videoUpload.fields([
+  { name: 'source', maxCount: 1 },
+  { name: 'target_face', maxCount: 1 },
+]), async (req, res) => {
+  try {
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] }
+    if (!files?.source?.[0]) {
+      return res.status(400).json({ error: 'Source video is required' })
+    }
+    if (!files?.target_face?.[0]) {
+      return res.status(400).json({ error: 'Target face image is required' })
+    }
+
+    const sourcePath = files.source[0].path
+    const targetPath = files.target_face[0].path
+    const outputFilename = `video-${uuidv4()}.mp4`
+    const outputPath = path.join(resultsDir, outputFilename)
+
+    const result = await processVideo(sourcePath, targetPath, outputPath)
+
+    fs.unlinkSync(sourcePath)
+    fs.unlinkSync(targetPath)
+
+    return res.json({
+      resultUrl: `/api/results/${outputFilename}`,
+      totalFrames: result.totalFrames,
+      swappedFrames: result.swappedFrames,
+    })
+  } catch (error) {
+    console.error('Video swap error:', error)
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : 'Video face swap failed',
     })
   }
 })

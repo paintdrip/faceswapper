@@ -77,3 +77,47 @@ export async function processImageMultiple(
 
   return { facesDetected }
 }
+
+export async function processVideo(
+  sourcePath: string,
+  targetFacePath: string,
+  outputPath: string,
+): Promise<{ totalFrames: number; swappedFrames: number }> {
+  const form = new FormData()
+  form.append('source', fs.createReadStream(sourcePath))
+  form.append('target_face', fs.createReadStream(targetFacePath))
+
+  try {
+    const response = await axios.post(`${AI_SERVICE_URL}/swap-video`, form, {
+      headers: form.getHeaders(),
+      responseType: 'arraybuffer',
+      timeout: 600000,
+    })
+
+    fs.writeFileSync(outputPath, Buffer.from(response.data))
+
+    const totalFrames = parseInt(response.headers['x-total-frames'] || '0', 10)
+    const swappedFrames = parseInt(response.headers['x-swapped-frames'] || '0', 10)
+
+    return { totalFrames, swappedFrames }
+  } catch (error: any) {
+    if (error.response?.data) {
+      let msg = error.response.data
+      if (Buffer.isBuffer(msg)) {
+        msg = msg.toString()
+      }
+      if (typeof msg === 'string') {
+        try {
+          const parsed = JSON.parse(msg)
+          msg = parsed.detail || msg
+        } catch {
+          // keep as string
+        }
+      } else if (msg?.detail) {
+        msg = msg.detail
+      }
+      throw new Error(msg)
+    }
+    throw error
+  }
+}

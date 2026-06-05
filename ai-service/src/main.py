@@ -116,6 +116,57 @@ async def swap_faces(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/swap-video")
+async def swap_video(
+    source: UploadFile = File(...),
+    target_face: UploadFile = File(...),
+):
+    if not service:
+        raise HTTPException(status_code=500, detail="Service not initialized")
+
+    allowed_video = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'application/octet-stream']
+    allowed_ext = ['.mp4', '.mov', '.avi', '.webm']
+    filename = source.filename or ''
+    has_valid_ext = any(filename.lower().endswith(ext) for ext in allowed_ext)
+    if source.content_type not in allowed_video and not has_valid_ext:
+        raise HTTPException(status_code=400, detail=f"Invalid video type: {source.content_type}. Allowed: MP4, MOV, AVI, WEBM")
+
+    if not target_face.content_type or not target_face.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Invalid target face type")
+
+    try:
+        video_contents = await source.read()
+        # Limit 50MB
+        if len(video_contents) > 50 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Video too large (max 50MB)")
+
+        target_contents = await target_face.read()
+        if len(target_contents) > 10 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Target face too large (max 10MB)")
+
+        target_nparr = np.frombuffer(target_contents, np.uint8)
+        target_img = cv2.imdecode(target_nparr, cv2.IMREAD_COLOR)
+        if target_img is None:
+            raise HTTPException(status_code=400, detail="Invalid target face image")
+
+        result_bytes, total_frames, swapped_frames = service.swap_video(video_contents, target_img)
+
+        return StreamingResponse(
+            io.BytesIO(result_bytes),
+            media_type="video/mp4",
+            headers={
+                "X-Total-Frames": str(total_frames),
+                "X-Swapped-Frames": str(swapped_frames),
+                "Content-Disposition": f'attachment; filename="faceswapper-video-{source.filename or "result"}.mp4"',
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Video processing error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "service": "ai-service"}

@@ -4,19 +4,31 @@ import { useAppStore } from '@/store/useAppStore'
 import { useTranslation } from '@/i18n/useTranslation'
 
 export default function ResultViewer() {
-  const { resultImage, setOriginalImage, setDetectedFaces, setResultImage, setStatus } = useAppStore()
+  const {
+    resultImage,
+    resultVideo,
+    setOriginalImage,
+    setOriginalVideo,
+    setDetectedFaces,
+    setResultImage,
+    setResultVideo,
+    setStatus,
+    swapMode,
+  } = useAppStore()
   const { t } = useTranslation()
 
-  if (!resultImage) return null
+  const result = resultImage || resultVideo
+  if (!result) return null
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(resultImage)
+      const response = await fetch(result)
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `faceswapper-result-${Date.now()}.png`
+      const ext = resultVideo ? 'mp4' : 'png'
+      link.download = `faceswapper-result-${Date.now()}.${ext}`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -28,8 +40,10 @@ export default function ResultViewer() {
 
   const handleReset = () => {
     setOriginalImage(null)
+    setOriginalVideo(null)
     setDetectedFaces([])
     setResultImage(null)
+    setResultVideo(null)
     setStatus('idle')
   }
 
@@ -40,11 +54,19 @@ export default function ResultViewer() {
       className="space-y-4"
     >
       <div className="glass-strong rounded-2xl overflow-hidden">
-        <img
-          src={resultImage}
-          alt="Result"
-          className="w-full h-96 object-contain bg-black/20"
-        />
+        {resultVideo ? (
+          <video
+            src={result}
+            controls
+            className="w-full h-96 object-contain bg-black/20"
+          />
+        ) : (
+          <img
+            src={result}
+            alt="Result"
+            className="w-full h-96 object-contain bg-black/20"
+          />
+        )}
       </div>
       <div className="flex gap-3 justify-center">
         <button
@@ -59,7 +81,7 @@ export default function ResultViewer() {
           className="flex items-center gap-2 px-6 py-3 rounded-xl glass hover:bg-white/10 text-white font-medium transition-all"
         >
           <RotateCcw className="w-5 h-5" />
-          {t.newPhoto}
+          {swapMode === 'video' ? t.newVideo : t.newPhoto}
         </button>
       </div>
     </motion.div>

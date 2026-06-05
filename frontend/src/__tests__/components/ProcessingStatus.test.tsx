@@ -27,22 +27,21 @@ describe('ProcessingStatus', () => {
     useAppStore.getState().setStatus('uploading')
     useAppStore.getState().setProgress(45)
     render(<ProcessingStatus />, { wrapper: Wrapper })
-    expect(screen.getByText('Загрузка изображения...')).toBeInTheDocument()
+    expect(screen.getByText('Загрузка...')).toBeInTheDocument()
     expect(screen.getByText('45%')).toBeInTheDocument()
   })
 
   it('renders processing state', () => {
     useAppStore.getState().setStatus('processing')
     render(<ProcessingStatus />, { wrapper: Wrapper })
-    expect(screen.getByText('AI обрабатывает лица...')).toBeInTheDocument()
+    expect(screen.getByText('AI обрабатывает...')).toBeInTheDocument()
   })
 
   it('renders completed state', () => {
     useAppStore.getState().setStatus('completed')
     useAppStore.getState().setFacesDetected(2)
     render(<ProcessingStatus />, { wrapper: Wrapper })
-    expect(screen.getByText(/Готово!/i)).toBeInTheDocument()
-    expect(screen.getByText(/2/i)).toBeInTheDocument()
+    expect(screen.getByText('Готово!')).toBeInTheDocument()
   })
 
   it('renders error state', () => {

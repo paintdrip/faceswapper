@@ -24,9 +24,13 @@ export default function ImageUploader({ placeholder, hint }: ImageUploaderProps)
         const reader = new FileReader()
         reader.onload = () => {
           setImage(reader.result as string)
+          store.setOriginalVideo(null)
           store.setDetectedFaces([])
           if (store.resultImage) {
             store.setResultImage(null)
+          }
+          if (store.resultVideo) {
+            store.setResultVideo(null)
           }
           if (store.status === 'completed' || store.status === 'error') {
             store.setStatus('idle')
@@ -55,6 +59,9 @@ export default function ImageUploader({ placeholder, hint }: ImageUploaderProps)
     store.setDetectedFaces([])
     if (store.resultImage) {
       store.setResultImage(null)
+    }
+    if (store.resultVideo) {
+      store.setResultVideo(null)
     }
     store.setStatus('idle')
     store.setError(null)

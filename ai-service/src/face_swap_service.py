@@ -1,4 +1,5 @@
 import os
+import io
 import base64
 import cv2
 import numpy as np
@@ -110,3 +111,71 @@ class FaceSwapService:
                 continue
 
         return result, swapped_count
+
+    def swap_video(self, video_bytes: bytes, target_face_image: np.ndarray) -> tuple[bytes, int, int]:
+        """Swap all faces in each frame of a video. Returns (video_bytes, total_frames, swapped_frames)."""
+        if self.swapper is None:
+            raise RuntimeError("Models not initialized")
+
+        reference_face = self._prepare_reference_face(target_face_image)
+
+        # Write temp input video
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as tmp_in:
+            tmp_in.write(video_bytes)
+            tmp_in_path = tmp_in.name
+
+        cap = cv2.VideoCapture(tmp_in_path)
+        if not cap.isOpened():
+            os.unlink(tmp_in_path)
+            raise ValueError("Cannot open video file")
+
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        # Limit to 30 seconds
+        max_frames = int(fps * 30)
+        if total_frames > max_frames:
+            total_frames = max_frames
+
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as tmp_out:
+            tmp_out_path = tmp_out.name
+
+        writer = cv2.VideoWriter(tmp_out_path, fourcc, fps, (width, height))
+
+        swapped_frames = 0
+        frame_idx = 0
+
+        while frame_idx < total_frames:
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            try:
+                faces = self.app.get(frame)
+                if len(faces) > 0:
+                    result = frame.copy()
+                    for face in faces:
+                        result = self.swapper.get(result, face, reference_face, paste_back=True)
+                    writer.write(result)
+                    swapped_frames += 1
+                else:
+                    writer.write(frame)
+            except Exception as e:
+                print(f"Frame {frame_idx} error: {e}")
+                writer.write(frame)
+
+            frame_idx += 1
+
+        cap.release()
+        writer.release()
+        os.unlink(tmp_in_path)
+
+        with open(tmp_out_path, 'rb') as f:
+            result_bytes = f.read()
+        os.unlink(tmp_out_path)
+
+        return result_bytes, total_frames, swapped_frames

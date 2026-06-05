@@ -4,7 +4,7 @@ import { useAppStore } from '@/store/useAppStore'
 import { useTranslation } from '@/i18n/useTranslation'
 
 export default function ProcessingStatus() {
-  const { status, progress, error, facesDetected } = useAppStore()
+  const { status, progress, error } = useAppStore()
   const { t } = useTranslation()
 
   if (status === 'idle') return null
@@ -51,7 +51,7 @@ export default function ProcessingStatus() {
       {status === 'completed' && (
         <div className="flex items-center gap-3 text-green-400">
           <CheckCircle2 className="w-5 h-5" />
-          <span>{t.completed} {facesDetected}.</span>
+          <span>{t.completed}</span>
         </div>
       )}
 
